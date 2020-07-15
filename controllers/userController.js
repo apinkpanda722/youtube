@@ -169,7 +169,7 @@ export const userDetail = async (req, res) => {
 export const getEditProfile = (req, res) =>
   res.render("editProfile", { pageTitle: "Edit Profile" });
 
-export const postEditProfile = async (req, res) => {
+/* export const postEditProfile = async (req, res) => {
   const {
     body: { name, email },
     file,
@@ -187,6 +187,7 @@ export const postEditProfile = async (req, res) => {
     res.redirect(routes.editProfile);
   }
 };
+*/
 
 export const getChangePassword = (req, res) =>
   res.render("changePassword", { pageTitle: "Change Password" });

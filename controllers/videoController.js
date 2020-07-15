@@ -1,6 +1,7 @@
 import routes from "../routes";
 import Video from "../models/Video";
 import Comment from "../models/Comment";
+import { s3 } from "../middlewares";
 
 export const home = async (req, res) => {
   try {
@@ -33,10 +34,10 @@ export const getUpload = (req, res) =>
 export const postUpload = async (req, res) => {
   const {
     body: { title, description },
-    file: { path },
+    file: { location },
   } = req;
   const newVideo = await Video.create({
-    fileUrl: path,
+    fileUrl: location,
     title,
     description,
     creator: req.user._id,
@@ -89,11 +90,27 @@ export const deleteVideo = async (req, res) => {
     params: { id },
   } = req;
   try {
-    await Video.findOneAndRemove({ _id: id });
-  } catch (error) {}
-  res.redirect(routes.home);
+    const currentPost = await Video.findById(id);
+    const regex = /(http[s]?:\/\/)?([^\/\s]+\/)(.*)/;
+    const filePath = await currentPost.fileUrl.match(regex)[3];
+    console.log(filePath);
+    const delFile = {
+      Bucket: "youtube-cloneversion",
+      Key: filePath,
+    };
+    await s3
+      .deleteObject(delFile, function (err, data) {
+        if (err) throw error;
+        else console.log(data);
+      })
+      .promise();
+    await Video.findByIdAndRemove({ _id: id });
+    res.redirect(routes.home);
+  } catch (error) {
+    res.status(400);
+    res.redirect(routes.home);
+  }
 };
-
 // Register Video View
 
 export const postregisterView = async (req, res) => {
